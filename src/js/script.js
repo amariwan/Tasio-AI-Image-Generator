@@ -1,7 +1,53 @@
 document.addEventListener('DOMContentLoaded', () => {
-	const apiKey = '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';
+	const getApiKey = () => {
+		const app = document.createElement('div');
+		app.id = 'app';
+		app.className = 'container';
 
-	let selectedImageNumber = null;
+		const titleText = document.createElement('h1');
+		titleText.innerText = 'Tasio AI Image Generator';
+		const inputContainer = document.createElement('div');
+		inputContainer.className = 'row mt-5';
+		const input = document.createElement('input');
+		input.type = 'text';
+		input.placeholder = 'Enter your API key here...';
+		input.autofocus = true;
+		input.className = 'col-12 col-md-6';
+		const button = document.createElement('button');
+		button.innerText = 'Submit';
+		button.className = 'col-12 col-md-6';
+		const errorMessage = document.createElement('p');
+		errorMessage.className = 'errorMessage';
+		button.onclick = async () => {
+			const res = await checkKey(input.value);
+			if (res == true) {
+				setCookie('apiKey', input.value, 365);
+				location.reload();
+			} else {
+				input.className = 'error';
+				errorMessage.innerText = res.error;
+				errorMessage.style.display = 'block';
+			}
+		};
+
+		input.addEventListener('keyup', (event) => {
+			input.className = '';
+			errorMessage.style.display = 'none';
+		});
+
+		inputContainer.appendChild(input);
+		input.after(errorMessage);
+		inputContainer.appendChild(button);
+		app.appendChild(titleText);
+		app.appendChild(inputContainer);
+		document.body.appendChild(app);
+	};
+
+	const apiKey = getCookie('apiKey');
+	if (!apiKey) {
+		getApiKey();
+		return;
+	}
 
 	const app = document.createElement('div');
 	app.id = 'app';
@@ -132,3 +178,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	document.body.appendChild(app);
 });
+
+// check key
+const checkKey = async (apiKey) => {
+	try {
+		const response = await fetch(
+			'https://api-inference.huggingface.co/models/prompthero/openjourney',
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${apiKey}`,
+				},
+			},
+		);
+		if (response.ok) {
+			return true;
+		} else {
+			return await response.json();
+		}
+	} catch (error) {
+		return error;
+	}
+};
+
+// cookie
+const setCookie = (cname, cvalue, exdays) => {
+	const d = new Date();
+	d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
+	let expires = 'expires=' + d.toUTCString();
+	document.cookie = cname + '=' + cvalue + ';' + expires + ';path=/';
+};
+
+const getCookie = (cname) => {
+	let name = cname + '=';
+	let decodedCookie = decodeURIComponent(document.cookie);
+	let ca = decodedCookie.split(';');
+	for (let i = 0; i < ca.length; i++) {
+		let c = ca[i];
+		while (c.charAt(0) == ' ') {
+			c = c.substring(1);
+		}
+		if (c.indexOf(name) == 0) {
+			return c.substring(name.length, c.length);
+		}
+	}
+	return '';
+};
+
+const deleteCookie = (cname) => {
+	document.cookie = cname + '=;expires=Thu, 01 Jan 1970';
+};
