@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	};
 
 	input.addEventListener('keyup', (event) => {
-		if (event.key === 'Enter') {
+		if (event.key === 'Enter' && button.disabled) {
 			generateImages(input.value);
 		}
 	});
