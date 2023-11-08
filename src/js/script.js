@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		clearImageGrid();
 
 		result.style.display = 'flex';
+		loading.style.display = 'block';
 
 		const imageUrls = [];
 
